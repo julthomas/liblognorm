@@ -3167,6 +3167,7 @@ struct data_String {
 	char qchar_begin;
 	char qchar_end;
 	char perm_chars[256]; // TODO: make this bit-wise, so we need  only 32 bytes
+	int perm_reverse;
 	int term_tolerant;
 	int term_empty;
 };
@@ -3184,7 +3185,10 @@ stringSetPermittedChar(struct data_String *const data, char c, int val)
 static inline int
 stringIsPermittedChar(struct data_String *const data, char c)
 {
-	return data->perm_chars[(unsigned)c];
+	int permitted = data->perm_chars[(unsigned)c];
+	if (data->perm_reverse)
+		permitted = !permitted;
+	return permitted;
 }
 static void
 stringAddPermittedCharArr(struct data_String *const data,
@@ -3379,6 +3383,7 @@ PARSER_Construct(String)
 	data->qchar_begin = '"';
 	data->qchar_end = '"';
 	memset(data->perm_chars, 0xff, sizeof(data->perm_chars));
+	data->perm_reverse = 0;
 	data->term_tolerant = 0;
 	data->term_empty = 0;
 	
@@ -3446,6 +3451,8 @@ PARSER_Construct(String)
 					"object type, given as '%s",
 					 json_object_to_json_string(val));
 			}
+		} else if(!strcasecmp(key, "matching.reverse")) {
+			data->perm_reverse = json_object_get_boolean(val);
 		} else if(!strcasecmp(key, "terminating.tolerant")) {
 			data->term_tolerant = json_object_get_boolean(val);
 		} else if(!strcasecmp(key, "terminating.empty")) {
