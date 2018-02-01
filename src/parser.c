@@ -3168,6 +3168,7 @@ struct data_String {
 	char qchar_end;
 	char perm_chars[256]; // TODO: make this bit-wise, so we need  only 32 bytes
 	int term_tolerant;
+	int term_empty;
 };
 static inline void
 stringSetPermittedChar(struct data_String *const data, char c, int val)
@@ -3318,7 +3319,7 @@ PARSER_Parse(String)
 	if(bHaveQuotes && !bHadEndQuote)
 		goto done;
 
-	if(i == *offs)
+	if(!data->term_empty && i == *offs)
 		goto done;
 
 	const size_t trmChkIdx = (bHaveQuotes) ? i+1 : i;
@@ -3379,6 +3380,7 @@ PARSER_Construct(String)
 	data->qchar_end = '"';
 	memset(data->perm_chars, 0xff, sizeof(data->perm_chars));
 	data->term_tolerant = 0;
+	data->term_empty = 0;
 	
 	struct json_object_iterator it = json_object_iter_begin(json);
 	struct json_object_iterator itEnd = json_object_iter_end(json);
@@ -3446,6 +3448,8 @@ PARSER_Construct(String)
 			}
 		} else if(!strcasecmp(key, "terminating.tolerant")) {
 			data->term_tolerant = json_object_get_boolean(val);
+		} else if(!strcasecmp(key, "terminating.empty")) {
+			data->term_empty = json_object_get_boolean(val);
 		} else {
 			ln_errprintf(ctx, 0, "invalid param for hexnumber: %s",
 				 json_object_to_json_string(val));
