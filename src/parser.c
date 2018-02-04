@@ -3181,12 +3181,12 @@ stringSetPermittedChar(struct data_String *const data, char c, int val)
 	const unsigned mask = ~(1 << shft);
 	perm_arr[i] = (perm_arr[i] & (0xff
 #endif
-	data->perm_chars[(unsigned)c] = val;
+	data->perm_chars[(c & 0xff)] = val;
 }
 static inline int
 stringIsPermittedChar(struct data_String *const data, char c)
 {
-	int permitted = data->perm_chars[(unsigned)c];
+	int permitted = data->perm_chars[(c & 0xff)];
 	if (data->perm_reverse)
 		permitted = !permitted;
 	return permitted;
