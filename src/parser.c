@@ -3170,6 +3170,7 @@ struct data_String {
 	int perm_reverse;
 	int term_tolerant;
 	int term_empty;
+	int term_unquoted_space;
 };
 static inline void
 stringSetPermittedChar(struct data_String *const data, char c, int val)
@@ -3313,7 +3314,7 @@ PARSER_Parse(String)
 		}
 
 		/* terminating conditions */
-		if(!bHaveQuotes && npb->str[i] == ' ')
+		if(!bHaveQuotes && data->term_unquoted_space && npb->str[i] == ' ')
 			break;
 		if(!stringIsPermittedChar(data, npb->str[i]))
 			break;
@@ -3386,6 +3387,7 @@ PARSER_Construct(String)
 	data->perm_reverse = 0;
 	data->term_tolerant = 0;
 	data->term_empty = 0;
+	data->term_unquoted_space = 1;
 	
 	struct json_object_iterator it = json_object_iter_begin(json);
 	struct json_object_iterator itEnd = json_object_iter_end(json);
@@ -3457,6 +3459,8 @@ PARSER_Construct(String)
 			data->term_tolerant = json_object_get_boolean(val);
 		} else if(!strcasecmp(key, "terminating.empty")) {
 			data->term_empty = json_object_get_boolean(val);
+		} else if(!strcasecmp(key, "terminating.unquoted.space")) {
+			data->term_unquoted_space = json_object_get_boolean(val);
 		} else {
 			ln_errprintf(ctx, 0, "invalid param for hexnumber: %s",
 				 json_object_to_json_string(val));
